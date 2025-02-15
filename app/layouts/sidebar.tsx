@@ -10,7 +10,6 @@ export async function loader({
     const url = new URL(request.url);
     const q = url.searchParams.get("q");
     const contacts = await getContacts(q);
-    const submit = useSubmit();
     return { contacts,q };
   }
 
@@ -19,6 +18,12 @@ export default function SidebarLayout({
 }: Route.ComponentProps) {
   const { contacts,q } = loaderData;
   const navigation = useNavigation();
+  const submit = useSubmit();
+  const searching =
+    navigation.location &&
+    new URLSearchParams(navigation.location.search).has(
+      "q"
+    );
 
   useEffect(() => {
     const searchField = document.getElementById("q");
@@ -39,6 +44,7 @@ export default function SidebarLayout({
             } role="search">
             <input
               aria-label="Search contacts"
+              className={searching ? "loading" : ""}
               defaultValue={q || ""}
               id="q"
               name="q"
@@ -47,7 +53,7 @@ export default function SidebarLayout({
             />
             <div
               aria-hidden
-              hidden={true}
+              hidden={!searching}
               id="search-spinner"
             />
           </Form>
@@ -92,7 +98,8 @@ export default function SidebarLayout({
         </nav>
       </div>
       <div className={
-          navigation.state === "loading" ? "loading" : ""
+          navigation.state === "loading" && !searching ? "loading"
+            : ""
         } id="detail">
         <Outlet />
       </div>
